@@ -24,6 +24,7 @@ public class AdminServlet extends HttpServlet {
         if(method==null){
             method = "findAllBorrow";
         }
+
         HttpSession httpSession = req.getSession();
 
         switch(method){
@@ -47,8 +48,30 @@ public class AdminServlet extends HttpServlet {
                 Admin admin = (Admin) httpSession.getAttribute("admin");
                 //得到借阅ID、相应的操作、管理员ID之后，将操作写入数据库
                 bookService.handleBorrowState(borrowID, state, admin.getId());
-                //重定向到admin的findAllBorrow方法
-                resp.sendRedirect("/admin?method=findAllBorrow&page=1&state=0");
+                if(state==1 || state==2){
+                    //重定向到admin的findAllBorrow方法
+                    resp.sendRedirect("/admin?method=findAllBorrow&page=1&state=0");
+                }
+                if(state==3){
+                    //重定向到admin的getBorrowed方法
+                    resp.sendRedirect("/admin?method=getBorrowed&page=1");
+                }
+
+                break;
+            case "getBorrowed":
+//                stateStr = req.getParameter("state");
+                pageStr = req.getParameter("page");
+//                state = Integer.parseInt(stateStr);
+                page = Integer.parseInt(pageStr);
+                List<Borrow> returnList = bookService.findAllBorrowByState(1, page);
+                req.setAttribute("returnList", returnList);
+                req.setAttribute("currentPage", page);
+                req.setAttribute("dataPrePage", 5);
+                req.setAttribute("pages", bookService.getBorrowPagesByState(1));
+                req.getRequestDispatcher("return.jsp").forward(req, resp);
+                break;
+
+
         }
     }
 }
